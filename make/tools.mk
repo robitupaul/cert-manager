@@ -375,7 +375,7 @@ $(K8S_CODEGEN_TOOLS_DOWNLOADS): $(BINDIR)/downloaded/tools/%-gen@$(K8S_CODEGEN_V
 ############################
 
 KUBEBUILDER_TOOLS_linux_amd64_SHA256SUM=c9796a0a13ccb79b77e3d64b8d3bb85a14fc850800724c63b85bf5bacbe0b4ba
-KUBEBUILDER_TOOLS_darwin_amd64_SHA256SUM=a232faf4551ffb1185660c5a2eb9eaaf7eb02136fa71e7ead84ee940a205d9bf
+KUBEBUILDER_TOOLS_darwin_amd64_SHA256SUM=c1d5a5bdcf44dac94413868f2fd9b67f520a94c1b4b18b19fd89e3042792b0da
 KUBEBUILDER_TOOLS_darwin_arm64_SHA256SUM=e5ae7aaead02af274f840693131f24aa0506b0b44ccecb5f073847b39bef2ce2
 
 $(BINDIR)/downloaded/tools/etcd@$(KUBEBUILDER_ASSETS_VERSION)_%: $(BINDIR)/downloaded/tools/kubebuilder_tools_$(KUBEBUILDER_ASSETS_VERSION)_%.tar.gz | $(BINDIR)/downloaded/tools

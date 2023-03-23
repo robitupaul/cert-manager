@@ -19,8 +19,11 @@ package http
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
+	"github.com/cert-manager/cert-manager/pkg/issuer/acme/http/contour"
 	"io"
+	"k8s.io/client-go/dynamic/dynamiclister"
 	"net"
 	"net/http"
 	"net/url"
@@ -63,6 +66,7 @@ type Solver struct {
 	serviceLister   corev1listers.ServiceLister
 	ingressLister   networkingv1listers.IngressLister
 	httpRouteLister gwapilisters.HTTPRouteLister
+	httpProxyLister dynamiclister.Lister
 
 	testReachability reachabilityTest
 	requiredPasses   int
@@ -72,23 +76,43 @@ type reachabilityTest func(ctx context.Context, url *url.URL, key string, dnsSer
 
 // NewSolver returns a new ACME HTTP01 solver for the given *controller.Context.
 func NewSolver(ctx *controller.Context) (*Solver, error) {
-	return &Solver{
+	solver := Solver{
 		Context:          ctx,
 		podLister:        ctx.KubeSharedInformerFactory.Core().V1().Pods().Lister(),
 		serviceLister:    ctx.KubeSharedInformerFactory.Core().V1().Services().Lister(),
 		ingressLister:    ctx.KubeSharedInformerFactory.Networking().V1().Ingresses().Lister(),
 		httpRouteLister:  ctx.GWShared.Gateway().V1beta1().HTTPRoutes().Lister(),
+		httpProxyLister:  nil,
 		testReachability: testReachability,
 		requiredPasses:   5,
-	}, nil
+	}
+
+	if ctx.ContourEnabled {
+		dynamicInformer := ctx.DynamicSharedInformerFactory.ForResource(contour.HTTPProxyGvr())
+		solver.httpProxyLister = dynamiclister.New(dynamicInformer.Informer().GetIndexer(), contour.HTTPProxyGvr())
+	}
+	return &solver, nil
 }
 
 func http01IngressCfgForChallenge(ch *cmacme.Challenge) (*cmacme.ACMEChallengeSolverHTTP01Ingress, error) {
 	if ch.Spec.Solver.HTTP01 == nil || ch.Spec.Solver.HTTP01.Ingress == nil {
-		return nil, fmt.Errorf("challenge's 'solver' field is specified but no HTTP01 ingress config provided. " +
+		return nil, errors.New("challenge's 'solver' field is specified but no HTTP01 ingress config provided. " +
 			"Ensure solvers[].http01.ingress is specified on your issuer resource")
 	}
 	return ch.Spec.Solver.HTTP01.Ingress, nil
+}
+
+func serviceTypeForChallenge(ch *cmacme.Challenge) (corev1.ServiceType, error) {
+	if ch.Spec.Solver.HTTP01 != nil {
+		if ch.Spec.Solver.HTTP01.Ingress != nil {
+			return ch.Spec.Solver.HTTP01.Ingress.ServiceType, nil
+		}
+		if ch.Spec.Solver.HTTP01.HTTPProxy != nil {
+			return corev1.ServiceTypeClusterIP, nil
+		}
+	}
+
+	return "", errors.New("could not determine service type for challenge")
 }
 
 func getServiceType(ch *cmacme.Challenge) (corev1.ServiceType, error) {
@@ -97,6 +121,9 @@ func getServiceType(ch *cmacme.Challenge) (corev1.ServiceType, error) {
 	}
 	if ch.Spec.Solver.HTTP01 != nil && ch.Spec.Solver.HTTP01.GatewayHTTPRoute != nil {
 		return ch.Spec.Solver.HTTP01.GatewayHTTPRoute.ServiceType, nil
+	}
+	if ch.Spec.Solver.HTTP01 != nil && ch.Spec.Solver.HTTP01.HTTPProxy != nil {
+		return ch.Spec.Solver.HTTP01.HTTPProxy.ServiceType, nil
 	}
 	return "", fmt.Errorf("neither HTTP01 Ingress nor Gateway solvers were found")
 }
@@ -113,7 +140,7 @@ func (s *Solver) Present(ctx context.Context, issuer v1.GenericIssuer, ch *cmacm
 	if svcErr != nil {
 		return utilerrors.NewAggregate([]error{podErr, svcErr})
 	}
-	var ingressErr, gatewayErr error
+	var ingressErr, gatewayErr, httpproxyErr error
 	if ch.Spec.Solver.HTTP01 != nil {
 		if ch.Spec.Solver.HTTP01.Ingress != nil {
 			_, ingressErr = s.ensureIngress(ctx, ch, svc.Name)
@@ -122,6 +149,10 @@ func (s *Solver) Present(ctx context.Context, issuer v1.GenericIssuer, ch *cmacm
 		if ch.Spec.Solver.HTTP01.GatewayHTTPRoute != nil {
 			_, gatewayErr = s.ensureGatewayHTTPRoute(ctx, ch, svc.Name)
 			return utilerrors.NewAggregate([]error{podErr, svcErr, gatewayErr})
+		}
+		if ch.Spec.Solver.HTTP01.HTTPProxy != nil {
+			_, httpproxyErr = s.ensureHTTPProxy(ctx, ch, svc.Name)
+			return utilerrors.NewAggregate([]error{podErr, svcErr, httpproxyErr})
 		}
 	}
 	return utilerrors.NewAggregate(
@@ -181,6 +212,9 @@ func (s *Solver) CleanUp(ctx context.Context, issuer v1.GenericIssuer, ch *cmacm
 	errs = append(errs, s.cleanupPods(ctx, ch))
 	errs = append(errs, s.cleanupServices(ctx, ch))
 	errs = append(errs, s.cleanupIngresses(ctx, ch))
+	if s.ContourEnabled {
+		errs = append(errs, s.cleanupHTTPProxy(ctx, ch))
+	}
 	return utilerrors.NewAggregate(errs)
 }
 

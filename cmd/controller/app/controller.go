@@ -20,6 +20,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/cert-manager/cert-manager/pkg/issuer/acme/http/contour"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net"
 	"net/http"
 	"os"
@@ -64,6 +66,26 @@ func Run(opts *options.ControllerOptions, stopCh <-chan struct{}) error {
 	ctx, err := ctxFactory.Build()
 	if err != nil {
 		return err
+	}
+
+	ctx.ContourEnabled, err = isContourInstalled(ctx)
+	if err != nil {
+		log.Error(err, "failed to discover if Contour is available")
+		os.Exit(1)
+	}
+
+	if ctx.ContourEnabled {
+		ctx.ContourEnabled, err = canListHTTPProxy(rootCtx, ctx, opts.Namespace)
+		if err != nil {
+			log.Error(err, "failed to list Contour HTTPProxy")
+			os.Exit(1)
+		}
+	}
+
+	if ctx.ContourEnabled {
+		log.Info("Contour support is enabled")
+	} else {
+		log.Info("Contour support is disabled")
 	}
 
 	enabledControllers := opts.EnabledControllers()
@@ -213,6 +235,7 @@ func Run(opts *options.ControllerOptions, stopCh <-chan struct{}) error {
 	log.V(logf.DebugLevel).Info("starting shared informer factories")
 	ctx.SharedInformerFactory.Start(rootCtx.Done())
 	ctx.KubeSharedInformerFactory.Start(rootCtx.Done())
+	ctx.DynamicSharedInformerFactory.Start(rootCtx.Done())
 
 	if utilfeature.DefaultFeatureGate.Enabled(feature.ExperimentalGatewayAPISupport) {
 		ctx.GWShared.Start(rootCtx.Done())
@@ -225,6 +248,29 @@ func Run(opts *options.ControllerOptions, stopCh <-chan struct{}) error {
 	log.V(logf.InfoLevel).Info("control loops exited")
 
 	return nil
+}
+
+func isContourInstalled(ctx *controller.Context) (bool, error) {
+	groups, err := ctx.Client.Discovery().ServerGroups()
+	if err != nil {
+		return false, nil
+	}
+
+	for _, group := range groups.Groups {
+		if group.Name == contour.HTTPProxyGvr().Group {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func canListHTTPProxy(rootCtx context.Context, ctx *controller.Context, namespace string) (bool, error) {
+	//Check if sa has permissions to list HTTPProxy
+	_, err := ctx.DynamicClient.Resource(contour.HTTPProxyGvr()).Namespace(namespace).List(rootCtx, metav1.ListOptions{})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // buildControllerContextFactory builds a new controller ContextFactory which

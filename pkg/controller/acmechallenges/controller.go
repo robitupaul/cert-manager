@@ -36,6 +36,7 @@ import (
 	"github.com/cert-manager/cert-manager/pkg/issuer"
 	"github.com/cert-manager/cert-manager/pkg/issuer/acme/dns"
 	"github.com/cert-manager/cert-manager/pkg/issuer/acme/http"
+	"github.com/cert-manager/cert-manager/pkg/issuer/acme/http/contour"
 	logf "github.com/cert-manager/cert-manager/pkg/logs"
 )
 
@@ -107,6 +108,11 @@ func (c *controller) Register(ctx *controllerpkg.Context) (workqueue.RateLimitin
 		podInformer.Informer().HasSynced,
 		serviceInformer.Informer().HasSynced,
 		ingressInformer.Informer().HasSynced,
+	}
+
+	if ctx.ContourEnabled {
+		httpProxyInformer := ctx.DynamicSharedInformerFactory.ForResource(contour.HTTPProxyGvr())
+		mustSync = append(mustSync, httpProxyInformer.Informer().HasSynced)
 	}
 
 	if ctx.GatewaySolverEnabled {

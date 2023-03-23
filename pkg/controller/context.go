@@ -27,6 +27,8 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/client-go/discovery"
+	dynamicclient "k8s.io/client-go/dynamic"
+	dynamicinformers "k8s.io/client-go/dynamic/dynamicinformer"
 	kubeinformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -79,6 +81,8 @@ type Context struct {
 	RESTConfig *rest.Config
 	// Client is a Kubernetes clientset
 	Client kubernetes.Interface
+	// DynamicClient is a Dynamic clientset
+	DynamicClient dynamicclient.Interface
 	// CMClient is a cert-manager clientset
 	CMClient clientset.Interface
 	// GWClient is a GatewayAPI clientset.
@@ -92,9 +96,15 @@ type Context struct {
 	// KubeSharedInformerFactory can be used to obtain shared
 	// SharedIndexInformer instances for Kubernetes types
 	KubeSharedInformerFactory kubeinformers.SharedInformerFactory
+	// DynamicSharedInformerFactory can be used to obtain
+	// SharedIndexInformer instances for Dynamic types
+	DynamicSharedInformerFactory dynamicinformers.DynamicSharedInformerFactory
 	// SharedInformerFactory can be used to obtain shared SharedIndexInformer
 	// instances
 	SharedInformerFactory informers.SharedInformerFactory
+
+	// ContourEnabled is true if Contour support is enabled
+	ContourEnabled bool
 
 	// The Gateway API is an external CRD, which means its shared informers are
 	// not available in controllerpkg.Context.
@@ -266,18 +276,20 @@ func NewContextFactory(ctx context.Context, opts ContextOptions) (*ContextFactor
 	sharedInformerFactory := informers.NewSharedInformerFactoryWithOptions(clients.cmClient, resyncPeriod, informers.WithNamespace(opts.Namespace))
 	kubeSharedInformerFactory := kubeinformers.NewSharedInformerFactoryWithOptions(clients.kubeClient, resyncPeriod, kubeinformers.WithNamespace(opts.Namespace))
 	gwSharedInformerFactory := gwinformers.NewSharedInformerFactoryWithOptions(clients.gwClient, resyncPeriod, gwinformers.WithNamespace(opts.Namespace))
+	dynamicSharedInformerFactory := dynamicinformers.NewFilteredDynamicSharedInformerFactory(clients.dynClient, resyncPeriod, opts.Namespace, nil)
 
 	return &ContextFactory{
 		baseRestConfig: restConfig,
 		log:            logf.FromContext(ctx),
 		ctx: &Context{
-			RootContext:               ctx,
-			StopCh:                    ctx.Done(),
-			KubeSharedInformerFactory: kubeSharedInformerFactory,
-			SharedInformerFactory:     sharedInformerFactory,
-			GWShared:                  gwSharedInformerFactory,
-			GatewaySolverEnabled:      clients.gatewayAvailable,
-			ContextOptions:            opts,
+			RootContext:                  ctx,
+			StopCh:                       ctx.Done(),
+			KubeSharedInformerFactory:    kubeSharedInformerFactory,
+			SharedInformerFactory:        sharedInformerFactory,
+			DynamicSharedInformerFactory: dynamicSharedInformerFactory,
+			GWShared:                     gwSharedInformerFactory,
+			GatewaySolverEnabled:         clients.gatewayAvailable,
+			ContextOptions:               opts,
 		},
 	}, nil
 }
@@ -320,6 +332,7 @@ type contextClients struct {
 	kubeClient       kubernetes.Interface
 	cmClient         clientset.Interface
 	gwClient         gwclient.Interface
+	dynClient        dynamicclient.Interface
 	gatewayAvailable bool
 }
 
@@ -365,5 +378,10 @@ func buildClients(restConfig *rest.Config) (contextClients, error) {
 		return contextClients{}, fmt.Errorf("error creating kubernetes client: %w", err)
 	}
 
-	return contextClients{kubeClient, cmClient, gwClient, gatewayAvailable}, nil
+	dyncl, err := dynamicclient.NewForConfig(restConfig)
+	if err != nil {
+		return contextClients{}, fmt.Errorf("error creating dynamic client #{err}")
+	}
+
+	return contextClients{kubeClient, cmClient, gwClient, dyncl, gatewayAvailable}, nil
 }

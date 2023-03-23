@@ -219,6 +219,13 @@ type ACMEChallengeSolverHTTP01 struct {
 	// +optional
 	Ingress *ACMEChallengeSolverHTTP01Ingress `json:"ingress,omitempty"`
 
+	//The Contour HTTPProxy based HTTP01 challenge solver will solve
+	//challenges by creating a HTTPProxy resource in order to route
+	//requests for '/.well-known/acme-challenge/XYZ' to 'challenge solver'
+	//pods that are provisioned by cert-manager for each Challenge to be completed.
+	//+optional
+	HTTPProxy *ACMEChallengeSolverHTTP01HTTPProxy `json:"httpproxy,omitempty"`
+
 	// The Gateway API is a sig-network community API that models service networking
 	// in Kubernetes (https://gateway-api.sigs.k8s.io/). The Gateway solver will
 	// create HTTPRoutes with the specified labels in the same namespace as the challenge.
@@ -256,6 +263,22 @@ type ACMEChallengeSolverHTTP01Ingress struct {
 	// ingress used for HTTP01 challenges.
 	// +optional
 	IngressTemplate *ACMEChallengeSolverHTTP01IngressTemplate `json:"ingressTemplate,omitempty"`
+}
+
+type ACMEChallengeSolverHTTP01HTTPProxy struct {
+	// Optional service type for Kubernetes solver service
+	// +optional
+	ServiceType corev1.ServiceType `json:"serviceType,omitempty"`
+
+	// Custom labels that will be applied to HTTPProxy created by cert-manager
+	// while solving HTTP-01 challenges.
+	// +optional
+	Labels map[string]string `json:"labels,omitempty"`
+
+	// Optional pod template used to configure the ACME challenge solver pods
+	// used for HTTP01 challenges.
+	// +optional
+	PodTemplate *ACMEChallengeSolverHTTP01IngressPodTemplate `json:"podTemplate,omitempty"`
 }
 
 // The ACMEChallengeSolverHTTP01GatewayHTTPRoute solver will create HTTPRoute objects for a Gateway class
