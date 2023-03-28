@@ -23,6 +23,7 @@ global:
     create: true
     # Aggregate ClusterRoles to Kubernetes default user-facing roles. Ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles
     aggregateClusterRoles: true
+    allowContourResourceAccess: true
 
   podSecurityPolicy:
     enabled: false
