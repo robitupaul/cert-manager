@@ -7,7 +7,7 @@ require (
 	github.com/Azure/go-autorest/autorest v0.11.28
 	github.com/Azure/go-autorest/autorest/adal v0.9.21
 	github.com/Azure/go-autorest/autorest/to v0.4.0
-	github.com/Venafi/vcert/v4 v4.0.0-00010101000000-000000000000
+	github.com/Venafi/vcert/v4 v4.14.3
 	github.com/akamai/AkamaiOPEN-edgegrid-golang v1.2.1
 	github.com/aws/aws-sdk-go v1.44.105
 	github.com/cloudflare/cloudflare-go v0.50.0
@@ -27,7 +27,7 @@ require (
 	github.com/onsi/gomega v1.26.0
 	github.com/pavlo-v-chernykh/keystore-go/v4 v4.4.1
 	github.com/pkg/errors v0.9.1
-	github.com/projectcontour/contour v1.24.2
+	github.com/projectcontour/contour v1.23.2
 	github.com/prometheus/client_golang v1.14.0
 	github.com/segmentio/encoding v0.3.5
 	github.com/sergi/go-diff v1.2.0
@@ -80,7 +80,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr v1.4.10 // indirect
-	github.com/armon/go-metrics v0.3.9 // indirect
+	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -256,7 +256,7 @@ require (
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.35 // indirect
 	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
 	sigs.k8s.io/kustomize/api v0.12.1 // indirect
-	sigs.k8s.io/kustomize/kyaml v0.13.10 // indirect
+	sigs.k8s.io/kustomize/kyaml v0.13.9 // indirect
 )
 
 replace github.com/miekg/dns v1.1.41 => github.com/miekg/dns v1.1.34
