@@ -2,12 +2,13 @@ package http
 
 import (
 	"context"
+	"reflect"
+	"testing"
+
 	cmacme "github.com/cert-manager/cert-manager/pkg/apis/acme/v1"
 	"github.com/cert-manager/cert-manager/pkg/issuer/acme/http/contour"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"reflect"
-	"testing"
 )
 
 func TestEnsureContour(t *testing.T) {

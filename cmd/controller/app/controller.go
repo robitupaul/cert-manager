@@ -20,12 +20,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/cert-manager/cert-manager/pkg/issuer/acme/http/contour"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/cert-manager/cert-manager/pkg/issuer/acme/http/contour"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"golang.org/x/sync/errgroup"
 	"k8s.io/apimachinery/pkg/api/resource"

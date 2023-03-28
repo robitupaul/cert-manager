@@ -93,3 +93,7 @@ func Convert_acme_ACMEIssuer_To_v1alpha2_ACMEIssuer(in *acme.ACMEIssuer, out *AC
 func Convert_v1alpha2_ACMEIssuer_To_acme_ACMEIssuer(in *ACMEIssuer, out *acme.ACMEIssuer, s conversion.Scope) error {
 	return autoConvert_v1alpha2_ACMEIssuer_To_acme_ACMEIssuer(in, out, s)
 }
+
+func Convert_acme_ACMEChallengeSolverHTTP01_To_v1alpha2_ACMEChallengeSolverHTTP01(in *acme.ACMEChallengeSolverHTTP01, out *ACMEChallengeSolverHTTP01, s conversion.Scope) error {
+	return autoConvert_acme_ACMEChallengeSolverHTTP01_To_v1alpha2_ACMEChallengeSolverHTTP01(in, out, s)
+}

@@ -3,13 +3,14 @@ package http
 import (
 	"context"
 	"fmt"
+	"reflect"
+
 	cmacme "github.com/cert-manager/cert-manager/pkg/apis/acme/v1"
 	"github.com/cert-manager/cert-manager/pkg/issuer/acme/http/contour"
 	logf "github.com/cert-manager/cert-manager/pkg/logs"
 	contourv1 "github.com/projectcontour/contour/apis/projectcontour/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"reflect"
 )
 
 func (s *Solver) ensureHTTPProxy(ctx context.Context, ch *cmacme.Challenge, svcName string) (*contour.HTTPProxy, error) {

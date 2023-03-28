@@ -88,11 +88,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*acme.ACMEChallengeSolverHTTP01)(nil), (*ACMEChallengeSolverHTTP01)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_acme_ACMEChallengeSolverHTTP01_To_v1alpha3_ACMEChallengeSolverHTTP01(a.(*acme.ACMEChallengeSolverHTTP01), b.(*ACMEChallengeSolverHTTP01), scope)
-	}); err != nil {
-		return err
-	}
 	if err := s.AddGeneratedConversionFunc((*ACMEChallengeSolverHTTP01GatewayHTTPRoute)(nil), (*acme.ACMEChallengeSolverHTTP01GatewayHTTPRoute)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1alpha3_ACMEChallengeSolverHTTP01GatewayHTTPRoute_To_acme_ACMEChallengeSolverHTTP01GatewayHTTPRoute(a.(*ACMEChallengeSolverHTTP01GatewayHTTPRoute), b.(*acme.ACMEChallengeSolverHTTP01GatewayHTTPRoute), scope)
 	}); err != nil {
@@ -350,6 +345,11 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*acme.OrderStatus)(nil), (*OrderStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_acme_OrderStatus_To_v1alpha3_OrderStatus(a.(*acme.OrderStatus), b.(*OrderStatus), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddConversionFunc((*acme.ACMEChallengeSolverHTTP01)(nil), (*ACMEChallengeSolverHTTP01)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_acme_ACMEChallengeSolverHTTP01_To_v1alpha3_ACMEChallengeSolverHTTP01(a.(*acme.ACMEChallengeSolverHTTP01), b.(*ACMEChallengeSolverHTTP01), scope)
 	}); err != nil {
 		return err
 	}

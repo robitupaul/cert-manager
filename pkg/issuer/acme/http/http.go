@@ -21,14 +21,15 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/cert-manager/cert-manager/pkg/issuer/acme/http/contour"
 	"io"
-	"k8s.io/client-go/dynamic/dynamiclister"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/cert-manager/cert-manager/pkg/issuer/acme/http/contour"
+	"k8s.io/client-go/dynamic/dynamiclister"
 
 	corev1 "k8s.io/api/core/v1"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"

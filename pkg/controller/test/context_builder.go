@@ -116,9 +116,12 @@ func (b *Builder) Init() {
 	if b.StringGenerator == nil {
 		b.StringGenerator = RandStringBytes
 	}
+
+	//listMapping := map[schema.GroupVersionResource]string{}
 	b.requiredReactors = make(map[string]bool)
 	b.Client = kubefake.NewSimpleClientset(b.KubeObjects...)
 	b.DynamicClient = dynamicfake.NewSimpleDynamicClient(runtime.NewScheme(), b.DynamicObjects...)
+	//b.DynamicClient = dynamicfake.NewSimpleDynamicClientWithCustomListKinds(runtime.NewScheme(), listMapping, b.DynamicObjects...)
 	b.CMClient = cmfake.NewSimpleClientset(b.CertManagerObjects...)
 	b.GWClient = gwfake.NewSimpleClientset(b.GWObjects...)
 	b.DiscoveryClient = discoveryfake.NewDiscovery().WithServerResourcesForGroupVersion(func(groupVersion string) (*metav1.APIResourceList, error) {
