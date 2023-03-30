@@ -88,10 +88,10 @@ func NewSolver(ctx *controller.Context) (*Solver, error) {
 		requiredPasses:   5,
 	}
 
-	if ctx.ContourEnabled {
-		dynamicInformer := ctx.DynamicSharedInformerFactory.ForResource(contour.HTTPProxyGvr())
-		solver.httpProxyLister = dynamiclister.New(dynamicInformer.Informer().GetIndexer(), contour.HTTPProxyGvr())
-	}
+	//if ctx.ContourEnabled {
+	dynamicInformer := ctx.DynamicSharedInformerFactory.ForResource(contour.HTTPProxyGvr())
+	solver.httpProxyLister = dynamiclister.New(dynamicInformer.Informer().GetIndexer(), contour.HTTPProxyGvr())
+	//}
 	return &solver, nil
 }
 
@@ -213,9 +213,9 @@ func (s *Solver) CleanUp(ctx context.Context, issuer v1.GenericIssuer, ch *cmacm
 	errs = append(errs, s.cleanupPods(ctx, ch))
 	errs = append(errs, s.cleanupServices(ctx, ch))
 	errs = append(errs, s.cleanupIngresses(ctx, ch))
-	if s.ContourEnabled {
-		errs = append(errs, s.cleanupHTTPProxy(ctx, ch))
-	}
+	//if s.ContourEnabled {
+	errs = append(errs, s.cleanupHTTPProxy(ctx, ch))
+	//}
 	return utilerrors.NewAggregate(errs)
 }
 

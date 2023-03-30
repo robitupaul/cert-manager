@@ -321,6 +321,7 @@ func (c *ContextFactory) Build(component ...string) (*Context, error) {
 	ctx.Client = clients.kubeClient
 	ctx.CMClient = clients.cmClient
 	ctx.GWClient = clients.gwClient
+	ctx.DynamicClient = clients.dynClient
 	ctx.DiscoveryClient = clients.kubeClient.Discovery()
 	ctx.Recorder = recorder
 
@@ -380,8 +381,7 @@ func buildClients(restConfig *rest.Config) (contextClients, error) {
 
 	dyncl, err := dynamicclient.NewForConfig(restConfig)
 	if err != nil {
-		return contextClients{}, fmt.Errorf("error creating dynamic client #{err}")
+		return contextClients{}, fmt.Errorf("error creating dynamic client: %w", err)
 	}
-
 	return contextClients{kubeClient, cmClient, gwClient, dyncl, gatewayAvailable}, nil
 }

@@ -110,10 +110,10 @@ func (c *controller) Register(ctx *controllerpkg.Context) (workqueue.RateLimitin
 		ingressInformer.Informer().HasSynced,
 	}
 
-	if ctx.ContourEnabled {
-		httpProxyInformer := ctx.DynamicSharedInformerFactory.ForResource(contour.HTTPProxyGvr())
-		mustSync = append(mustSync, httpProxyInformer.Informer().HasSynced)
-	}
+	//if ctx.ContourEnabled {
+	httpProxyInformer := ctx.DynamicSharedInformerFactory.ForResource(contour.HTTPProxyGvr())
+	mustSync = append(mustSync, httpProxyInformer.Informer().HasSynced)
+	//}
 
 	if ctx.GatewaySolverEnabled {
 		gwAPIHTTPRouteInformer := ctx.GWShared.Gateway().V1beta1().HTTPRoutes()
