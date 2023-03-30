@@ -108,11 +108,11 @@ func (s *Solver) Present(ctx context.Context, issuer v1.GenericIssuer, ch *cmacm
 	log := logf.FromContext(ctx).WithName(loggerName)
 	ctx = logf.NewContext(ctx, log)
 
-	_, podErr := s.ensurePod(ctx, ch)
-	_, svcErr := s.ensureService(ctx, ch)
-	if svcErr != nil {
-		return utilerrors.NewAggregate([]error{podErr, svcErr})
-	}
+	//_, podErr := s.ensurePod(ctx, ch)
+	//_, svcErr := s.ensureService(ctx, ch)
+	//if svcErr != nil {
+	//	return utilerrors.NewAggregate([]error{podErr, svcErr})
+	//}
 	//var ingressErr, gatewayErr error
 	//if ch.Spec.Solver.HTTP01 != nil {
 	//	if ch.Spec.Solver.HTTP01.Ingress != nil {
