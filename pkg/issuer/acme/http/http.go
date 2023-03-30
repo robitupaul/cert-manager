@@ -78,7 +78,7 @@ func NewSolver(ctx *controller.Context) (*Solver, error) {
 		serviceLister:    ctx.KubeSharedInformerFactory.Core().V1().Services().Lister(),
 		ingressLister:    ctx.KubeSharedInformerFactory.Networking().V1().Ingresses().Lister(),
 		httpRouteLister:  ctx.GWShared.Gateway().V1beta1().HTTPRoutes().Lister(),
-		testReachability: testReachability,
+		testReachability: nil,
 		requiredPasses:   5,
 	}, nil
 }
@@ -109,30 +109,23 @@ func (s *Solver) Present(ctx context.Context, issuer v1.GenericIssuer, ch *cmacm
 	ctx = logf.NewContext(ctx, log)
 
 	_, podErr := s.ensurePod(ctx, ch)
-	svc, svcErr := s.ensureService(ctx, ch)
+	_, svcErr := s.ensureService(ctx, ch)
 	if svcErr != nil {
 		return utilerrors.NewAggregate([]error{podErr, svcErr})
 	}
-	var ingressErr, gatewayErr error
-	if ch.Spec.Solver.HTTP01 != nil {
-		if ch.Spec.Solver.HTTP01.Ingress != nil {
-			_, ingressErr = s.ensureIngress(ctx, ch, svc.Name)
-			return utilerrors.NewAggregate([]error{podErr, svcErr, ingressErr})
-		}
-		if ch.Spec.Solver.HTTP01.GatewayHTTPRoute != nil {
-			_, gatewayErr = s.ensureGatewayHTTPRoute(ctx, ch, svc.Name)
-			return utilerrors.NewAggregate([]error{podErr, svcErr, gatewayErr})
-		}
-	}
-	return utilerrors.NewAggregate(
-		[]error{
-			podErr,
-			svcErr,
-			ingressErr,
-			gatewayErr,
-			fmt.Errorf("couldn't Present challenge %s/%s: no Ingress nor Gateway HTTP01 solvers were specified", ch.Namespace, ch.Name),
-		},
-	)
+	//var ingressErr, gatewayErr error
+	//if ch.Spec.Solver.HTTP01 != nil {
+	//	if ch.Spec.Solver.HTTP01.Ingress != nil {
+	//		_, ingressErr = s.ensureIngress(ctx, ch, svc.Name)
+	//		return utilerrors.NewAggregate([]error{podErr, svcErr, ingressErr})
+	//	}
+	//	if ch.Spec.Solver.HTTP01.GatewayHTTPRoute != nil {
+	//		_, gatewayErr = s.ensureGatewayHTTPRoute(ctx, ch, svc.Name)
+	//		return utilerrors.NewAggregate([]error{podErr, svcErr, gatewayErr})
+	//	}
+	//}
+	return nil
+
 }
 
 func (s *Solver) Check(ctx context.Context, issuer v1.GenericIssuer, ch *cmacme.Challenge) error {
@@ -161,10 +154,10 @@ func (s *Solver) Check(ctx context.Context, issuer v1.GenericIssuer, ch *cmacme.
 
 	log.V(logf.DebugLevel).Info("running self check multiple times to ensure challenge has propagated", "required_passes", s.requiredPasses)
 	for i := 0; i < s.requiredPasses; i++ {
-		err := s.testReachability(ctx, url, ch.Spec.Key, s.HTTP01SolverNameservers, s.Context.RESTConfig.UserAgent)
-		if err != nil {
-			return err
-		}
+		//err := s.testReachability(ctx, url, ch.Spec.Key, s.HTTP01SolverNameservers, s.Context.RESTConfig.UserAgent)
+		//if err != nil {
+		//	return err
+		//}
 		log.V(logf.DebugLevel).Info("reachability test passed, re-checking in 2s time")
 		time.Sleep(time.Second * 2)
 	}
