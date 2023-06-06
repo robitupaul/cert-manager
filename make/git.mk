@@ -1,4 +1,4 @@
-RELEASE_VERSION := $(shell git describe --tags --match='v*' --abbrev=14)
+RELEASE_VERSION := $(shell echo "v1.11.1-beta.0-8-adobe")
 
 GITCOMMIT := $(shell git rev-parse HEAD)
 

@@ -79,6 +79,7 @@ func (s *Solver) createHTTPProxy(ctx context.Context, ch *cmacme.Challenge, svcN
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName:    "cm-acme-http-solver-",
 			Namespace:       ch.Namespace,
+			Annotations:     map[string]string{"kubernetes.io/ingress.class": "contour-public"},
 			Labels:          podLabels(ch),
 			OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(ch, challengeGvk)},
 		},
@@ -152,6 +153,7 @@ func createHTTPProxySpec(ch *cmacme.Challenge, svcName string) *contourv1.HTTPPr
 						Port: acmeSolverListenPort,
 					},
 				},
+				PermitInsecure: true,
 			},
 		},
 	}

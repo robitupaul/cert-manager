@@ -120,11 +120,11 @@ func getServiceType(ch *cmacme.Challenge) (corev1.ServiceType, error) {
 	if ch.Spec.Solver.HTTP01 != nil && ch.Spec.Solver.HTTP01.Ingress != nil {
 		return ch.Spec.Solver.HTTP01.Ingress.ServiceType, nil
 	}
-	if ch.Spec.Solver.HTTP01 != nil && ch.Spec.Solver.HTTP01.GatewayHTTPRoute != nil {
-		return ch.Spec.Solver.HTTP01.GatewayHTTPRoute.ServiceType, nil
-	}
 	if ch.Spec.Solver.HTTP01 != nil && ch.Spec.Solver.HTTP01.HTTPProxy != nil {
 		return ch.Spec.Solver.HTTP01.HTTPProxy.ServiceType, nil
+	}
+	if ch.Spec.Solver.HTTP01 != nil && ch.Spec.Solver.HTTP01.GatewayHTTPRoute != nil {
+		return ch.Spec.Solver.HTTP01.GatewayHTTPRoute.ServiceType, nil
 	}
 	return "", fmt.Errorf("neither HTTP01 Ingress nor Gateway solvers were found")
 }
